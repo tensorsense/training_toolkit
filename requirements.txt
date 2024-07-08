@@ -1,0 +1,14 @@
+transformers
+accelerate
+bitsandbytes
+peft
+datasets
+
+sentencepiece
+protobuf
+
+av
+decord
+opencv-python
+pillow
+matplotlib
