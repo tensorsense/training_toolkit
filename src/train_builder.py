@@ -6,17 +6,21 @@ from transformers import (
     Seq2SeqTrainingArguments,
     DataCollatorForLanguageModeling,
 )
-from transformers import (
-    AutoProcessor,
-    BitsAndBytesConfig,
-    LlavaNextVideoForConditionalGeneration,
-)
+from transformers import BitsAndBytesConfig
+
 from peft import LoraConfig, prepare_model_for_kbit_training, get_peft_model
 
 import torch
 
 
-class LlavaNextVideoDataCollatorWithPadding:
+def default_find_linear_fn(*args, **kwargs):
+    raise NotImplementedError
+
+
+DEFAULT_FIND_LINEAR_FN = default_find_linear_fn
+
+
+class VideoDataCollatorWithPadding:
     def __init__(self, processor):
         self.processor = processor
 
@@ -42,28 +46,29 @@ class LlavaNextVideoDataCollatorWithPadding:
         return padded_inputs
 
 
-def find_all_linear_names(model):  # bespoke to the model
-    cls = torch.nn.Linear
-    lora_module_names = set()
-    multimodal_keywords = ["multi_modal_projector", "vision_model"]
-    for name, module in model.named_modules():
-        if any(mm_keyword in name for mm_keyword in multimodal_keywords):
-            continue
-        if isinstance(module, cls):
-            names = name.split(".")
-            lora_module_names.add(names[0] if len(names) == 1 else names[-1])
-
-    if "lm_head" in lora_module_names:  # needed for 16-bit
-        lora_module_names.remove("lm_head")
-    return list(lora_module_names)
-
-
-def setup_train(use_qlora, use_lora, model_id, ouput_dir, batch_size, processor, train_dataset, test_dataset):
+def build_trainer(
+    train_dataset,
+    test_dataset,
+    hf_model_id,
+    hf_model_cls,
+    hf_processor_cls,
+    output_dir,
+    use_qlora=True,
+    use_lora=False,
+    find_linear_names_fn=DEFAULT_FIND_LINEAR_FN,
+    batch_size=8,
+):
     ## Load model
     # Three options for training, from the lowest precision training to the highest precision training:
     # QLoRA: model uses 4-bit quantization, which helps in reducing memory usage while maintaining performance.
     # Standard LoRA:  model is loaded with standard LoRA adaptations.
     # Full Fine-Tuning: no memory optimization are done. In that case Flash Attention is used to speed up training, if hardware supports it.
+
+    # And we also need to load the processor for collate_fn
+    processor = hf_processor_cls.from_pretrained(hf_model_id, use_fast=False)
+    processor.tokenizer.padding_side = (
+        "right"  # during training, one always uses padding on the right
+    )
 
     if use_qlora or use_lora:
         if use_qlora:
@@ -72,37 +77,37 @@ def setup_train(use_qlora, use_lora, model_id, ouput_dir, batch_size, processor,
                 bnb_4bit_quant_type="nf4",
                 bnb_4bit_compute_dtype=torch.float16,
             )
-        model = LlavaNextVideoForConditionalGeneration.from_pretrained(
-            model_id,
+        model = hf_model_cls.from_pretrained(
+            hf_model_id,
             torch_dtype=torch.float16,
             quantization_config=bnb_config,
             device_map="auto",
         )
+
+        lora_config = LoraConfig(
+            r=8,
+            lora_alpha=8,
+            lora_dropout=0.1,
+            target_modules=find_linear_names_fn(model),
+            init_lora_weights="gaussian",
+        )
+
+        model = prepare_model_for_kbit_training(model)
+        model = get_peft_model(model, lora_config)
+
     else:
         # for full fine-tuning, we can speed up the model using Flash Attention
         # only available on certain devices, see https://github.com/Dao-AILab/flash-attention?tab=readme-ov-file#installation-and-features
-        model = LlavaNextVideoForConditionalGeneration.from_pretrained(
-            model_id,
+        model = hf_model_cls.from_pretrained(
+            hf_model_id,
             torch_dtype=torch.float16,
             _attn_implementation="flash_attention_2",
             device_map="auto",
         )
 
-    lora_config = LoraConfig(
-        r=8,
-        lora_alpha=8,
-        lora_dropout=0.1,
-        target_modules=find_all_linear_names(model),
-        init_lora_weights="gaussian",
-    )
-
-    model = prepare_model_for_kbit_training(model)
-    model = get_peft_model(model, lora_config)
-
-
     args = TrainingArguments(
         # args related to training
-        output_dir=ouput_dir,
+        output_dir=output_dir,
         eval_strategy="steps",
         eval_steps=20,
         per_device_train_batch_size=batch_size,
@@ -132,8 +137,10 @@ def setup_train(use_qlora, use_lora, model_id, ouput_dir, batch_size, processor,
     trainer = Trainer(
         model=model,
         tokenizer=processor,
-        data_collator=LlavaNextVideoDataCollatorWithPadding(processor=processor),
+        data_collator=VideoDataCollatorWithPadding(processor=processor),
         train_dataset=train_dataset,
         eval_dataset=test_dataset,
         args=args,
     )
+
+    return trainer

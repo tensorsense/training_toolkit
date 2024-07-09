@@ -1,5 +1,5 @@
 from transformers import AutoProcessor
-from datasets import concatenate_datasets, Dataset
+from datasets import concatenate_datasets, Dataset, load_from_disk
 import numpy as np
 import pandas as pd
 from pydantic import BaseModel, Field
@@ -9,15 +9,10 @@ from pathlib import Path
 import json
 from typing import Generator, Dict
 
-
 from decord import VideoReader, gpu, cpu
 
 
-NUM_FRAMES = 8
-MAX_LENGTH = 256
-
-
-def read_video_decord(video_path, num_frames=NUM_FRAMES):
+def read_video_decord(video_path, num_frames):
     """
     Decode the video with Decord decoder.
 
@@ -83,7 +78,7 @@ def prepare_batches(video_path: Path, qa_path: Path) -> Generator[Dict, None, No
 # see: https://discuss.huggingface.co/t/slow-iteration-speed-with-and-without-keep-in-memory-true/33587
 
 
-def collate_fn(sample, processor):
+def collate_fn(sample, processor, max_length):
     video_clip = read_video_decord(
         sample["video_path"]
     )  # change to the video decoder you want
@@ -111,19 +106,50 @@ def collate_fn(sample, processor):
         text=prompt,
         videos=video_clip,
         truncation=True,
-        max_length=MAX_LENGTH,
+        max_length=max_length,
         return_tensors="pt",
     )
 
     return batch
 
 
-def fetch_dataset(video_path, qa_path, processor):
+def build_dataset(
+    video_path, qa_path, dataset_name, hf_processor_cls, hf_model_id, num_frames, max_length
+):
+    # And we also need to load the processor for collate_fn
+    processor = hf_processor_cls.from_pretrained(hf_model_id, use_fast=False)
+    processor.tokenizer.padding_side = (
+        "right"  # during training, one always uses padding on the right
+    )
+
     ds = Dataset.from_generator(
-        prepare_batches, gen_kwargs={"video_path": video_path, "qa_path": qa_path}
+        prepare_batches,
+        gen_kwargs={
+            "video_path": video_path,
+            "qa_path": qa_path,
+            "num_frames": num_frames,
+        },
     )
 
     dataset = ds.map(
-        collate_fn, batched=False, fn_kwargs={"processor": processor}, num_proc=8
+        collate_fn,
+        batched=False,
+        fn_kwargs={"processor": processor, "max_length": max_length},
+        num_proc=8,
     )
+
+    dataset.save_to_disk(dataset_name)
     return dataset
+
+
+def fetch_local_dataset(dataset_name):
+
+    dataset = load_from_disk(dataset_name)
+
+    # dataset = dataset.shuffle(seed=42)
+    # dataset = dataset.train_test_split(test_size=0.2)
+
+    return {
+        "train_dataset": dataset["train"].with_format("torch"),
+        "test_dataset": dataset["test"].with_format("torch"),
+    }
