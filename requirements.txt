@@ -12,3 +12,5 @@ decord
 opencv-python
 pillow
 matplotlib
+
+python-dotenv
