@@ -140,16 +140,3 @@ def build_dataset(
 
     dataset.save_to_disk(dataset_name)
     return dataset
-
-
-def fetch_local_dataset(dataset_name):
-
-    dataset = load_from_disk(dataset_name)
-
-    # dataset = dataset.shuffle(seed=42)
-    # dataset = dataset.train_test_split(test_size=0.2)
-
-    return {
-        "train_dataset": dataset["train"].with_format("torch"),
-        "test_dataset": dataset["test"].with_format("torch"),
-    }

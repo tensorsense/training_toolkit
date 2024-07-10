@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field, ConfigDict
-from typing import Callable, Type, Optional, List
+from typing import Callable, Type, Optional, List, Dict
 from datasets import load_from_disk, Dataset
+from transformers import TrainingArguments
 
 
 class ModelPreset(BaseModel):
@@ -14,7 +15,7 @@ class ModelPreset(BaseModel):
     use_lora: bool = False
     lora_target_modules: List[str] = Field(default_factory=list)
 
-    batch_size: int = 8
+    training_args: Dict
 
     def as_kwargs(self):
         return self.model_dump()

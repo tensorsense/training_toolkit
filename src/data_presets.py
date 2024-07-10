@@ -1,11 +1,6 @@
 from src.core.types import DataPreset
 import torch
-from enum import Enum
 from datasets import load_dataset
-
-# class Task(Enum):
-#     VIDEO_QA = "video_qa"
-#     IMAGE_QA = "image_qa"
 
 
 class VideoDataCollatorWithPadding:
@@ -59,7 +54,7 @@ class ImageDataCollatorWithPadding:
 
 
 local_video_preset = DataPreset(
-    path="msrvtt_1000.hf",
+    path="../msrvtt_1000.hf",
     train_test_split=0.2,
     collator_cls=VideoDataCollatorWithPadding,
 )
