@@ -16,6 +16,8 @@ class ModelPreset(BaseModel):
     lora_target_modules: List[str] = Field(default_factory=list)
 
     training_args: Dict
+    preprocessor_cls: Optional[Type] = None
+    preprocessor_kwargs: Dict = Field(default_factory=dict)
 
     def as_kwargs(self):
         return self.model_dump()

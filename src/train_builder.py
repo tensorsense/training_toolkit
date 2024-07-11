@@ -14,6 +14,8 @@ def build_trainer(
     use_lora=False,
     lora_target_modules=None,
     training_args=None,
+    preprocessor_cls=None,
+    preprocessor_kwargs=None,
     **kwargs,
 ):
     ## Load model
@@ -27,6 +29,14 @@ def build_trainer(
     processor.tokenizer.padding_side = (
         "right"  # during training, one always uses padding on the right
     )
+
+    if preprocessor_cls is not None:
+        preprocessor = preprocessor_cls(processor, **preprocessor_kwargs)
+        train_dataset = preprocessor(train_dataset, split="train")
+        test_dataset = preprocessor(test_dataset, split="test")
+
+    print(len(train_dataset))
+    print(len(test_dataset))
 
     if use_qlora or use_lora:
         if use_qlora:

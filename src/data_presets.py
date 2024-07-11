@@ -54,7 +54,7 @@ class ImageDataCollatorWithPadding:
 
 
 local_video_preset = DataPreset(
-    path="../msrvtt_1000.hf",
+    path="msrvtt-qa_1000",
     train_test_split=0.2,
     collator_cls=VideoDataCollatorWithPadding,
 )
