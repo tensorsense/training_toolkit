@@ -5,5 +5,8 @@ from .src.importers.json import ImageJSONImporter, VideoJSONImporter
 
 from .src.core.types import DataPreset, ModelPreset
 
-from .src.model_presets import paligemma_preset, llava_next_video_preset
-from .src.data_presets import vqa2_image_preset, local_video_preset
+from .src.model_presets.image import paligemma_image_preset
+from .src.model_presets.video import llava_next_video_preset
+
+from .src.data_presets.qa import image_qa_preset, video_qa_preset
+from .src.data_presets.json import image_json_preset
