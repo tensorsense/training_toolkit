@@ -51,9 +51,6 @@ def qa_generator(
             }
 
             yield sample
-            if idx >= 1000:
-                break
-
     return _generate
 
 
