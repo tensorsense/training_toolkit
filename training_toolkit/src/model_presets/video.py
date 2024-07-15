@@ -8,7 +8,11 @@ from datasets import load_from_disk
 from datetime import datetime
 import os
 
-from decord import VideoReader, gpu, cpu
+try:
+    from decord import VideoReader, gpu, cpu
+except ImportError as e:
+    print(e)
+
 import numpy as np
 from pathlib import Path
 
