@@ -1,4 +1,4 @@
-from src.core.types import ModelPreset
+from training_toolkit import ModelPreset
 
 from transformers import (
     LlavaNextVideoForConditionalGeneration,

@@ -1,4 +1,4 @@
-from src.core.types import DataPreset
+from training_toolkit import DataPreset
 import torch
 from datasets import load_dataset
 
