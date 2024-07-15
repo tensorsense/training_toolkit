@@ -1,9 +1,10 @@
 from training_toolkit import DataPreset
 import torch
-from datasets import load_dataset
+
+# from datasets import load_dataset
 
 
-class VideoDataCollatorWithPadding:
+class VideoQACollatorWithPadding:
     def __init__(self, processor):
         self.processor = processor
 
@@ -29,7 +30,7 @@ class VideoDataCollatorWithPadding:
         return padded_inputs
 
 
-class ImageDataCollatorWithPadding:
+class ImageQACollatorWithPadding:
     def __init__(self, processor):
         self.processor = processor
 
@@ -53,22 +54,19 @@ class ImageDataCollatorWithPadding:
         return tokens
 
 
-local_video_preset = DataPreset(
-    path="msrvtt-qa_1000",
+video_qa_preset = DataPreset(
     train_test_split=0.2,
-    collator_cls=VideoDataCollatorWithPadding,
+    collator_cls=VideoQACollatorWithPadding,
+)
+
+image_qa_preset = DataPreset(
+    train_test_split=0.2,
+    collator_cls=ImageQACollatorWithPadding,
 )
 
 
-def fetch_vqa(*args, **kwargs):
-    dataset = load_dataset("HuggingFaceM4/VQAv2", split="train")
-    cols_remove = ["question_type", "answers", "answer_type", "image_id", "question_id"]
-    dataset = dataset.remove_columns(cols_remove)
-    return dataset
-
-
-vqa2_image_preset = DataPreset(
-    train_test_split=0.2,
-    collator_cls=ImageDataCollatorWithPadding,
-    fetch_callback=fetch_vqa,
-)
+# def fetch_vqa(*args, **kwargs):
+#     dataset = load_dataset("HuggingFaceM4/VQAv2", split="train")
+#     cols_remove = ["question_type", "answers", "answer_type", "image_id", "question_id"]
+#     dataset = dataset.remove_columns(cols_remove)
+#     return dataset

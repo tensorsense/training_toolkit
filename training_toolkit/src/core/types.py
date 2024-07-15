@@ -35,6 +35,9 @@ class DataPreset(BaseModel):
     collator_cls: Type = None
     fetch_callback: Callable = DEFAULT_FETCH_CALLBACK
 
+    def with_path(self, path):
+        return self.model_copy(update={"path": path}, deep=True)
+
     def as_kwargs(self):
         self.dataset = self.fetch_callback(self.path)
         self.dataset = self.dataset.train_test_split(test_size=self.train_test_split)
