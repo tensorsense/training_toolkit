@@ -19,7 +19,9 @@ class ImageJSONImporter:
         dataset_dict = defaultdict(list)
 
         for json_dict in json_dicts:
-            dataset_dict["image"].append(image_path.joinpath(json_dict["image"]))
+            dataset_dict["image"].append(
+                image_path.joinpath(json_dict["image"]).as_posix()
+            )
             dataset_dict["json"].append(json_dict["json"])
 
         dataset = Dataset.from_dict(dataset_dict).cast_column("image", Image())
@@ -41,7 +43,9 @@ class VideoJSONImporter:
         dataset_dict = defaultdict(list)
 
         for json_dict in json_dicts:
-            dataset_dict["video"].append(video_path.joinpath(json_dict["video"]))
+            dataset_dict["video"].append(
+                video_path.joinpath(json_dict["video"]).as_posix()
+            )
             dataset_dict["json"].append(json_dict["json"])
 
         dataset = Dataset.from_dict(dataset_dict)
