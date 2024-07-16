@@ -48,7 +48,7 @@ def build_trainer(
         model = hf_model_cls.from_pretrained(
             hf_model_id,
             torch_dtype=torch.float16,
-            quantization_config=bnb_config,
+            quantization_config=bnb_config if use_qlora else None,
             device_map="auto",
         )
 
