@@ -1,16 +1,17 @@
-transformers
-accelerate
-bitsandbytes
-peft
-datasets
+transformers==4.42.3
+accelerate==0.32.0
+bitsandbytes==0.43.1
+peft==0.11.1
+datasets==2.20.0
 
-sentencepiece
-protobuf
+sentencepiece==0.2.0
+protobuf==5.27.2
 
-av
-decord
-opencv-python
-pillow
-matplotlib
+av==12.2.0
+decord==0.6.0
+opencv-python==4.10.0.84
+pillow==10.4.0
+matplotlib==3.9.1
 
-python-dotenv
+python-dotenv==1.0.1
+pydantic==2.8.2
