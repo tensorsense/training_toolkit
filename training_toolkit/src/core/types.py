@@ -39,9 +39,10 @@ class DataPreset(BaseModel):
         return self.model_copy(update={"path": path}, deep=True)
 
     def as_kwargs(self):
-        self.dataset = self.fetch_callback(self.path)
-        self.dataset = self.dataset.train_test_split(test_size=self.train_test_split)
-        self.dataset = self.dataset.shuffle(seed=42)
+        if self.dataset is None:
+            self.dataset = self.fetch_callback(self.path)
+            self.dataset = self.dataset.train_test_split(test_size=self.train_test_split)
+            self.dataset = self.dataset.shuffle(seed=42)
 
         return {
             "train_dataset": self.dataset["train"].with_format("torch"),

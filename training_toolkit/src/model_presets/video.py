@@ -1,4 +1,4 @@
-from training_toolkit import ModelPreset
+from training_toolkit import ModelPreset, get_video_reader
 
 from transformers import (
     LlavaNextVideoForConditionalGeneration,
@@ -8,32 +8,7 @@ from datasets import load_from_disk
 from datetime import datetime
 import os
 
-try:
-    from decord import VideoReader, gpu, cpu
-except ImportError as e:
-    print(e)
-
-import numpy as np
 from pathlib import Path
-
-
-def read_video_decord(video_path, num_frames):
-    """
-    Decode the video with Decord decoder.
-
-    Args:
-        video_path (str): Path to the video file.
-        num_frames (int): Number of frames to sample uniformly. Defaults to NUM_FRAMES
-
-    Returns:
-        np.ndarray: np array of decoded frames of shape (num_frames, height, width, 3).
-    """
-    vr = VideoReader(
-        uri=video_path, ctx=cpu(0)
-    )  # you need to install from source to use gpu ctx
-    indices = np.arange(0, len(vr), len(vr) / num_frames).astype(int)
-    frames = vr.get_batch(indices).asnumpy()
-    return frames
 
 
 class LlavaNextVideoPreprocessor:
@@ -46,7 +21,7 @@ class LlavaNextVideoPreprocessor:
         self.cache_location = Path(cache_location).resolve()
 
         self.num_proc=os.cpu_count()
-        self.read_video_fn = read_video_decord
+        self.read_video_fn = get_video_reader()
 
     def __call__(self, dataset, split):
         if self.cache_location is not None:
