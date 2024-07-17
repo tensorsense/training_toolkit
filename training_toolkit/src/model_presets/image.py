@@ -45,7 +45,7 @@ paligemma_image_preset = ModelPreset(
         optim="paged_adamw_8bit",
         bf16=True,
         
-        # report_to=["tensorboard"],
+        report_to=["tensorboard"],
         remove_unused_columns=False,
         dataloader_pin_memory=False,
         dataloader_num_workers=os.cpu_count(),

@@ -152,6 +152,8 @@ llava_next_video_preset = ModelPreset(
         # model that was wrapped for QLORA training with peft will not have arguments listed in its signature
         # so we need to pass lable names explicitly to calculate val loss
         label_names=["labels"],
+        report_to=["tensorboard"],
+        remove_unused_columns=False,
         dataloader_num_workers=os.cpu_count(),  # let's get more workers since iterating on video datasets might be slower in general
     ),
     preprocessor_cls=LlavaNextVideoPreprocessor,
