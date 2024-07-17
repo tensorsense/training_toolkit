@@ -35,9 +35,6 @@ def build_trainer(
         train_dataset = preprocessor(train_dataset, split="train")
         test_dataset = preprocessor(test_dataset, split="test")
 
-    print(len(train_dataset))
-    print(len(test_dataset))
-
     if use_qlora or use_lora:
         if use_qlora:
             bnb_config = BitsAndBytesConfig(
@@ -45,6 +42,7 @@ def build_trainer(
                 bnb_4bit_quant_type="nf4",
                 bnb_4bit_compute_dtype=torch.float16,
             )
+
         model = hf_model_cls.from_pretrained(
             hf_model_id,
             torch_dtype=torch.float16,

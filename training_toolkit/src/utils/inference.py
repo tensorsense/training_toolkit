@@ -1,4 +1,4 @@
-from training_toolkit import get_video_reader
+from training_toolkit.src.common.video_readers import get_video_reader
 
 
 VIDEO_READER = get_video_reader()

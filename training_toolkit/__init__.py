@@ -1,4 +1,4 @@
-from .src.common.video_readers import get_video_reader
+# from .src.common.video_readers import get_video_reader
 
 from .src.train_builder import build_trainer
 
