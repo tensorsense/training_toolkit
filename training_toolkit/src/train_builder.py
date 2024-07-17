@@ -70,11 +70,13 @@ def build_trainer(
             _attn_implementation="flash_attention_2",
             device_map="auto",
         )
+    
+    collator = collator_cls(processor=processor)
 
     trainer = Trainer(
         model=model,
         tokenizer=processor,
-        data_collator=collator_cls(processor=processor),
+        data_collator=collator,
         train_dataset=train_dataset,
         eval_dataset=test_dataset,
         args=TrainingArguments(**training_args),
