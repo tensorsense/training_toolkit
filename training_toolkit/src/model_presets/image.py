@@ -24,7 +24,7 @@ paligemma_image_preset = ModelPreset(
         "down_proj",
     ],
     training_args=dict(
-        output_dir=f"paligemma_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}",
+        output_dir=f"paligemma_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}",
         eval_strategy="steps",
         eval_steps=20,
         logging_steps=20,

@@ -103,7 +103,7 @@ llava_next_video_preset = ModelPreset(
         "q_proj",
     ],
     training_args=dict(
-        output_dir=f"llava_next_video_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}",
+        output_dir=f"llava_next_video_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}",
         eval_strategy="steps",
         eval_steps=20,
         logging_steps=20,
