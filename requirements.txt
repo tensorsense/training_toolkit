@@ -16,3 +16,4 @@ matplotlib==3.9.1
 python-dotenv==1.0.1
 pydantic==2.8.2
 tensorboardx==2.6.2.2
+flask==3.0.3
