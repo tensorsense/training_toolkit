@@ -19,22 +19,40 @@ class ImageJSONCollatorWithPadding:
         images = [example["image"] for example in examples]
 
         images = [
-            torch.cat([image, image, image], dim=0) if image.shape[0] == 1 else image
+            self.fix_image_channels(image) if image.shape[0] != 3 else image
             for image in images
         ]
 
         texts = [PROMPT for _ in range(len(examples))]
 
-        tokens = self.processor(
-            text=texts,
-            images=images,
-            suffix=labels,
-            return_tensors="pt",
-            padding="longest",
-        )
+        try:
+            tokens = self.processor(
+                text=texts,
+                images=images,
+                suffix=labels,
+                return_tensors="pt",
+                padding="longest",
+            )
+        except Exception as e:
+            for image in images:
+                print(image.shape)
+            raise e
         return tokens
 
-    def json2token(self, obj, sort_json_key: bool = True):
+    @staticmethod
+    def fix_image_channels(image):
+        if image.shape[0] == 1:
+            image = torch.cat([image, image, image], dim=0)
+        elif image.shape[0] > 3:
+            image = image[:3]
+        return image
+
+    def json2token(
+        self,
+        obj,
+        # update_special_tokens_for_json_key: bool = True,
+        sort_json_key: bool = True,
+    ):
         """
         Convert an ordered JSON object into a token sequence
         """
@@ -48,10 +66,23 @@ class ImageJSONCollatorWithPadding:
                 else:
                     keys = obj.keys()
                 for k in keys:
-                    output += rf"" + self.json2token(obj[k], sort_json_key) + rf""
+                    output += (
+                        rf"<s_{k}>"
+                        + self.json2token(
+                            obj[k], sort_json_key  # update_special_tokens_for_json_key,
+                        )
+                        + rf"</s_{k}>"
+                    )
                 return output
         elif type(obj) == list:
-            return r"".join([self.json2token(item, sort_json_key) for item in obj])
+            return r"<sep/>".join(
+                [
+                    self.json2token(
+                        item, sort_json_key  # update_special_tokens_for_json_key,
+                    )
+                    for item in obj
+                ]
+            )
         else:
             obj = str(obj)
             return obj
