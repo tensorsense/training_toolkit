@@ -33,7 +33,9 @@ def build_trainer(
     if preprocessor_cls is not None:
         preprocessor = preprocessor_cls(processor, **preprocessor_kwargs)
         train_dataset = preprocessor(train_dataset, split="train")
-        test_dataset = preprocessor(test_dataset, split="test")
+        
+        if test_dataset is not None:
+            test_dataset = preprocessor(test_dataset, split="test")
 
     if use_qlora or use_lora:
         if use_qlora:
@@ -70,7 +72,9 @@ def build_trainer(
             _attn_implementation="flash_attention_2",
             device_map="auto",
         )
-    
+
+    model.print_trainable_parameters()
+
     collator = collator_cls(processor=processor)
 
     trainer = Trainer(
