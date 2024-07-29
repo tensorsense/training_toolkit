@@ -13,21 +13,18 @@ class ImageSegmentationCollator:
         self.segmentation_tokenizer = SegmentationTokenizer()
 
     def __call__(self, examples):
-
-        # image, image_path, prefix, xyxy_list, mask_list, class_id_list, classes
-        prefix = "segment " + " ; ".join(ds.classes)
         images = [example["image"] for example in examples]
+        texts = [example["prompt"] for example in examples]
 
-        images = [
-            self.fix_image_channels(image) if image.shape[0] != 3 else image
-            for image in images
+        labels = [
+            self.segmentation_tokenizer.encode(
+                example["image"],
+                example["xyxy_bboxes"],
+                example["masks"],
+                example["classes"],
+            )
+            for example in examples
         ]
-
-        texts = [prefix for _ in range(len(examples))]
-
-        labels = self.segmentation_tokenizer(
-            image, image_path, xyxy_list, mask_list, class_id_list, classes
-        )
 
         try:
             tokens = self.processor(
