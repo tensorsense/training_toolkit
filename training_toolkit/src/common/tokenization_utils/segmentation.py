@@ -6,9 +6,12 @@ import numpy as np
 import re
 import os
 import PIL
+from pathlib import Path
 
 
-MODEL_PATH = "resources/vae-oid.npz"
+MODEL_PATH = (
+    Path(__file__).parent.joinpath("resources/vae-oid.npz").resolve().as_posix()
+)
 
 EMBEDDING_DIM = 512
 NUM_EMBEDDINGS = 128
@@ -153,28 +156,13 @@ class SegmentationTokenizer:
         self.decoder_model = Decoder()
         self.decoder_model.load_state_dict(decoder_state_dict)
 
-    def encode(
-        self, image, image_path, prefix, xyxy_list, mask_list, class_id_list, classes
-    ):
-        labels = []
-        # prefix = "segment " + " ; ".join(ds.classes)
-        # image_path, image, annotations in ds:
-        h, w, _ = image.shape
+    def encode(self, image, xyxy_bboxes, masks, classes):
+        w, h = image.size
 
-        image_name = os.path.basename(image_path)
         suffix_components = []
-
-        # print(annotations)
-
-        # if (
-        #     annotations.xyxy is None
-        #     or annotations.mask is None
-        #     or annotations.class_id is None
-        # ):
-        #     print("broken sample")
-        #     continue
-
-        for xyxy, mask, class_id in zip(xyxy_list, mask_list, class_id_list):
+        for xyxy, mask, class_name in zip(xyxy_bboxes, masks, classes):
+            xyxy = np.array(xyxy)
+            mask = np.array(mask)
 
             y1 = xyxy[1].astype(np.int32)
             x1 = xyxy[0].astype(np.int32)
@@ -199,12 +187,11 @@ class SegmentationTokenizer:
             loc_string = np.take(LOC_TOKENS, binned_loc)
 
             suffix_part = "".join(np.concatenate([loc_string, mask_string]).tolist())
-            suffix_part = f"{suffix_part} {classes[class_id]}"
+            suffix_part = f"{suffix_part} {class_name}"
             suffix_components.append(suffix_part)
 
         suffix = " ; ".join(suffix_components)
-        labels.append({"image": image_name, "prefix": prefix, "suffix": suffix})
-        return labels
+        return suffix
 
     def decode(self, text, width, height, unique_labels=False):
         """Returns objs for a string with "<loc>" and "<seg>" tokens."""
@@ -258,27 +245,3 @@ class SegmentationTokenizer:
 
         return objs
 
-        # def from_paligemma(text: str, resolution_wh: Tuple[int, int], classes: List[str]) -> sv.Detections:
-        #     w, h = resolution_wh
-        #     results = extract_objs(text, w, h)
-
-        #     xyxy = []
-        #     mask = []
-        #     class_id = []
-        #     class_name = []
-
-        #     for r in results:
-        #         xyxy.append(r['xyxy'])
-        #         _, m = cv2.threshold(r['mask'], 0.5, 1.0, cv2.THRESH_BINARY)
-        #         mask.append(m)
-        #         class_id.append(classes.index(r['name'].strip()))
-        #         class_name.append(r['name'].strip())
-
-        #     detections = sv.Detections(
-        #         xyxy=np.array(xyxy).astype(int),
-        #         mask=np.array(mask).astype(bool),
-        #         class_id=np.array(class_id).astype(int)
-        #     )
-
-        #     detections['class_name'] = class_name
-        #     return detections
