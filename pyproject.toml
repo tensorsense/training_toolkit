@@ -27,7 +27,7 @@ dependencies = [
 ]
 description = "A toolkit for training models"
 license = {file = "LICENSE"}
-name = "Training Toolkit"
+name = "training_toolkit"
 readme = "README.md"
 
 requires-python = ">=3.12"
