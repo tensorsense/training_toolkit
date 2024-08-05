@@ -1,5 +1,5 @@
 from training_toolkit import ModelPreset
-from training_toolkit.src.common.video_readers import get_video_reader
+from training_toolkit.common.video_readers import get_video_reader
 
 from transformers import (
     LlavaNextVideoForConditionalGeneration,

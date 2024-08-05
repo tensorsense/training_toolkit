@@ -1,5 +1,5 @@
 from training_toolkit import DataPreset
-from training_toolkit.src.common.tokenization_utils.json import JSONTokenizer
+from training_toolkit.common.tokenization_utils.json import JSONTokenizer
 
 import torch
 import json
