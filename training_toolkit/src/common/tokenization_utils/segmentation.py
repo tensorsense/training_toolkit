@@ -157,19 +157,17 @@ class SegmentationTokenizer:
         self.decoder_model.load_state_dict(decoder_state_dict)
 
     def encode(self, image, xyxy_bboxes, masks, classes):
-        w, h = image.size
+        c, h, w = image.shape
 
         suffix_components = []
         for xyxy, mask, class_name in zip(xyxy_bboxes, masks, classes):
-            xyxy = np.array(xyxy)
-            mask = np.array(mask)
 
-            y1 = xyxy[1].astype(np.int32)
-            x1 = xyxy[0].astype(np.int32)
-            y2 = xyxy[3].astype(np.int32)
-            x2 = xyxy[2].astype(np.int32)
+            y1 = xyxy[1].int()
+            x1 = xyxy[0].int()
+            y2 = xyxy[3].int()
+            x2 = xyxy[2].int()
 
-            mask = torch.tensor(mask.astype(np.uint8), dtype=torch.uint8)
+            mask = mask.to(dtype=torch.uint8)
             mask = resize(
                 # mask[None, y1:y2, x1:x2, None],
                 mask[y1:y2, x1:x2].unsqueeze(0),
@@ -181,8 +179,8 @@ class SegmentationTokenizer:
             mask_indices = self.encoder_model(mask.unsqueeze(0)).numpy()
             mask_string = np.take(SEG_TOKENS, mask_indices)
 
-            bbox = xyxy[[1, 0, 3, 2]] / np.array([h, w, h, w])
-            binned_loc = (bbox * 1023).astype(np.int32)
+            bbox = xyxy[[1, 0, 3, 2]] / torch.tensor([h, w, h, w])
+            binned_loc = (bbox * 1023).int().numpy()
             binned_loc = np.clip(binned_loc, 0, 1023)
             loc_string = np.take(LOC_TOKENS, binned_loc)
 
@@ -215,7 +213,6 @@ class SegmentationTokenizer:
                 mask = None
             else:
                 seg_indices = np.array([int(x) for x in seg_indices], dtype=np.int32)
-
                 seg_indices = torch.tensor(seg_indices, dtype=torch.int64)
 
                 m64 = self.decoder_model(seg_indices).squeeze().detach().numpy()

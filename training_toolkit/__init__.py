@@ -12,5 +12,6 @@ from .src.model_presets.video import llava_next_video_preset
 
 from .src.data_presets.qa import image_qa_preset, video_qa_preset
 from .src.data_presets.json import image_json_preset
+from .src.data_presets.segmentation import image_segmentation_preset
 
 from .src.utils.visualization import animate_video_sample
