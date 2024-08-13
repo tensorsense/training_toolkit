@@ -68,7 +68,7 @@ def token2json(processor, tokens, is_inner_value=False, added_vocab=None):
                 content = content.group(1).strip()
                 if r"<s_" in content and r"</s_" in content:  # non-leaf node
                     value = token2json(
-                        content, is_inner_value=True, added_vocab=added_vocab
+                        processor, content, is_inner_value=True, added_vocab=added_vocab
                     )
                     if value:
                         if len(value) == 1:
@@ -87,7 +87,7 @@ def token2json(processor, tokens, is_inner_value=False, added_vocab=None):
             tokens = tokens[tokens.find(end_token) + len(end_token) :].strip()
             if tokens[:6] == r"<sep/>":  # non-leaf nodes
                 return [output] + token2json(
-                    tokens[6:], is_inner_value=True, added_vocab=added_vocab
+                    processor, tokens[6:], is_inner_value=True, added_vocab=added_vocab
                 )
 
     if len(output):
