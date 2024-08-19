@@ -1,20 +1,65 @@
 from training_toolkit import DataPreset
+from training_toolkit.common.video_readers import get_video_reader
 import torch
-
-# from datasets import load_dataset
+import os
 
 
 class VideoQACollatorWithPadding:
-    def __init__(self, processor):
+    def __init__(self, processor, num_frames=8, max_length=256):
         self.processor = processor
 
-    def __call__(self, features):
+        self.num_frames = num_frames
+        self.max_length = max_length
+
+        self.num_proc = os.cpu_count()
+        self.read_video_fn = get_video_reader()
+
+    def __call__(self, examples):
+        samples = []
+        for example in examples:
+
+            video = torch.tensor(
+                self.read_video_fn(
+                    example["video_path"],
+                    self.num_frames,
+                )
+            )
+
+            conversation = [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": example["text_prompt"]},
+                        {"type": "video"},
+                    ],
+                },
+                {
+                    "role": "assistant",
+                    "content": [
+                        {"type": "text", "text": example["target_answer"]},
+                    ],
+                },
+            ]
+
+            prompt = self.processor.apply_chat_template(
+                conversation, add_generation_prompt=False
+            )
+
+            sample = self.processor(
+                text=prompt,
+                videos=video,
+                truncation=True,
+                max_length=self.max_length,
+                return_tensors="pt",
+            )
+            samples.append(sample)
+
         padded_inputs = self.processor.tokenizer.pad(
             {
                 "input_ids": [
-                    feat["input_ids"][0] for feat in features
+                    sample["input_ids"][0] for sample in samples
                 ],  # each element is one batch only so we slice [0]
-                "attention_mask": [feat["attention_mask"][0] for feat in features],
+                "attention_mask": [sample["attention_mask"][0] for sample in samples],
             },
             padding=True,
             return_tensors="pt",
@@ -24,9 +69,8 @@ class VideoQACollatorWithPadding:
         labels[labels == self.processor.tokenizer.pad_token_id] = -100
         padded_inputs["labels"] = labels
         padded_inputs["pixel_values_videos"] = torch.cat(
-            [feat["pixel_values_videos"] for feat in features], dim=0
+            [sample["pixel_values_videos"] for sample in samples], dim=0
         )
-
         return padded_inputs
 
 
@@ -63,10 +107,3 @@ image_qa_preset = DataPreset(
     train_test_split=0.2,
     collator_cls=ImageQACollatorWithPadding,
 )
-
-
-# def fetch_vqa(*args, **kwargs):
-#     dataset = load_dataset("HuggingFaceM4/VQAv2", split="train")
-#     cols_remove = ["question_type", "answers", "answer_type", "image_id", "question_id"]
-#     dataset = dataset.remove_columns(cols_remove)
-#     return dataset
