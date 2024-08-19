@@ -65,8 +65,8 @@ eval_dataset = trainer.eval_dataset
 
 Check out the cookbook section of this repository to find walkthroughs for supported usecases.
 
-- How to fine-tune LlaVa-NeXT-Video on a local dataset for QA: [notebook](https://github.com/tensorsense/training_toolkit/blob/main/cookbook/import_video_and_ft_llava.ipynb).
-- How to fine-tune PaliGemma on a local image dataset for JSON output: [notebook](https://github.com/tensorsense/training_toolkit/blob/main/cookbook/import_images_and_ft_paligemma.ipynb).
+- How to fine-tune LlaVa-NeXT-Video on a local dataset for QA: [notebook](https://github.com/tensorsense/training_toolkit/blob/main/examples/import_video_and_ft_llava.ipynb).
+- How to fine-tune PaliGemma on a local image dataset for JSON output: [notebook](https://github.com/tensorsense/training_toolkit/blob/main/examples/import_images_and_ft_paligemma.ipynb).
 
 ## Configuration
 
