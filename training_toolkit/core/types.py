@@ -39,18 +39,21 @@ class DataPreset(BaseModel):
         return self.model_copy(update={"path": path}, deep=True)
 
     def as_kwargs(self, apply_train_test_split=True):
+        assert self.path is not None, "Cannot construct kwargs without a dataset path. Call with_path() first."
+
         if self.dataset is None:
             self.dataset = self.fetch_callback(self.path)
-        
+
         if apply_train_test_split:
-            self.dataset = self.dataset.train_test_split(test_size=self.train_test_split)
+            self.dataset = self.dataset.train_test_split(
+                test_size=self.train_test_split
+            )
             train_dataset = self.dataset["train"].with_format("torch")
             test_dataset = self.dataset["test"].with_format("torch")
         else:
             train_dataset = self.dataset.with_format("torch")
             test_dataset = None
 
-        
         train_dataset = train_dataset.shuffle(seed=42)
 
         return {
