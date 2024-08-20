@@ -1,6 +1,7 @@
 # 🦾 Training Toolkit
 
 ## Table of Contents
+0. [Example Projects](#example-projects)
 1. [Introduction](#introduction)
 2. [Features](#features)
 3. [Installation](#installation)
@@ -8,6 +9,12 @@
 5. [Usage](#usage)
 6. [Examples](#examples)
 7. [Configuration](#configuration)
+
+## Example Projects
+
+Want a real life example of how to put the Training Toolkit to practice? Check out our demo projects:
+
+- ♻️ [Trash Sorting Assistant](https://github.com/deepbuzin/trash_demo): Helps you navigate the uncharted terrain of properly sorting your waste items. Input a photo of your garbage and local waste disposal rules from wherever you are on the planet. The model will highlight the items using a segmentation adapter, and then cross-reference them with the rules using the RAG one.
 
 ## Introduction
 
